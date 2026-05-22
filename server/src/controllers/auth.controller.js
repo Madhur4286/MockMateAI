@@ -14,8 +14,14 @@ export async function registerUser(req, res) {
     try {
         const { name, email, password } = req.body;
 
-        if (!validator.isEmail(email)) {
+        if (!name || !email || !password) {
             return res.status(400).json({
+                message: "All fields are required"
+            });
+        }
+
+        if (!validator.isEmail(email)) {
+            return res.status(401).json({
                 message: "Invalid email",
             });
         }
@@ -43,6 +49,7 @@ export async function registerUser(req, res) {
 
         res.status(201).json({
             message: "User Created Successfully!",
+            token,
             user: {
                 name: user.name,
                 email: user.email,
@@ -79,7 +86,12 @@ export async function loginUser(req, res) {
 
         const token = generateToken(user._id);
 
-        res.cookie("token", token)
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
 
         res.status(200).json({
             message: "Login successful",
@@ -100,7 +112,11 @@ export async function loginUser(req, res) {
 }
 
 export async function logoutUser(req, res) {
-    res.clearCookie("token")
+    res.clearCookie("token", {
+        httpOnly: true,
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+    });
 
     res.status(200).json({ message: "Logged out successfully" })
 }

@@ -1,17 +1,20 @@
 import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import config from "./config/config.js";
 import connectToDb from "./config/database.js";
+import cookieParser from "cookie-parser";
 
 connectToDb()
 
 const app = express();
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
-
+app.use("/api/user", userRoutes);
 app.get("/", (req, res) => {
   res.send("API Running...");
 });
