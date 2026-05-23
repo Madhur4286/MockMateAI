@@ -9,9 +9,9 @@ import cookieParser from "cookie-parser";
 connectToDb()
 
 const app = express();
-app.use(cors());
-app.use(cookieParser());
 app.use(express.json());
+app.use(cookieParser());
+app.use(cors());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);

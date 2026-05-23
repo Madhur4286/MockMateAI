@@ -120,3 +120,10 @@ export async function logoutUser(req, res) {
 
     res.status(200).json({ message: "Logged out successfully" })
 }
+
+export function getCurrentUser(req, res) {
+    res.status(200).json({
+        success: true,
+        user: req.user,
+    });
+}
