@@ -3,12 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import validator from "validator";
 import config from "../config/config.js";
-
-const generateToken = (id) => {
-    return jwt.sign({ id }, config.JWT_SECRET, {
-        expiresIn: "7d",
-    });
-};
+import {generateToken} from "../utils/generateJwtToken.js";
+import ApiError from "../utils/ApiError.js";
 
 export async function registerUser(req, res) {
     try {
@@ -34,7 +30,10 @@ export async function registerUser(req, res) {
         })
 
         if (isUserAlreadyExist) {
-            return res.status(409).json({ message: "User Already Exists!!" })
+            throw new ApiError(
+                409,
+                "User Already Exists!!"
+            );
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
