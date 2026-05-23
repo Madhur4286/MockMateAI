@@ -3,31 +3,28 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import validator from "validator";
 import config from "../config/config.js";
-import {generateToken} from "../utils/generateJwtToken.js";
+import { generateToken } from "../utils/generateJwtToken.js";
 import ApiError from "../utils/ApiError.js";
 
-export async function registerUser(req, res) {
+export async function registerUser(req, res, next) {
     try {
         const { name, email, password } = req.body;
 
         if (!name || !email || !password) {
-            return res.status(400).json({
-                message: "All fields are required"
-            });
+            throw new ApiError(
+                400,
+                "All fields are required"
+            );
         }
 
         if (!validator.isEmail(email)) {
-            return res.status(401).json({
-                message: "Invalid email",
-            });
+            throw new ApiError(
+                400,
+                "Invalid email"
+            );
         }
 
-        const isUserAlreadyExist = await userModel.findOne({
-            $or: [
-                { name },
-                { email }
-            ]
-        })
+        const isUserAlreadyExist = await userModel.findOne({ email });
 
         if (isUserAlreadyExist) {
             throw new ApiError(
@@ -56,31 +53,31 @@ export async function registerUser(req, res) {
         })
 
     } catch (error) {
-        res.status(500).json({
-            message: error.message,
-        });
+        next(error);
     }
 
 }
 
-export async function loginUser(req, res) {
+export async function loginUser(req, res, next) {
     try {
         const { email, password } = req.body;
 
         const user = await userModel.findOne({ email });
 
         if (!user) {
-            return res.status(400).json({
-                message: "Invalid credentials",
-            });
+            throw new ApiError(
+                401,
+                "Invalid credentials"
+            );
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return res.status(400).json({
-                message: "Invalid credentials",
-            });
+            throw new ApiError(
+                401,
+                "Invalid credentials"
+            );
         }
 
         const token = generateToken(user._id);
@@ -101,16 +98,12 @@ export async function loginUser(req, res) {
             },
         });
     } catch (error) {
-        res.status(500).json({
-            message: error.message,
-        });
+        next(error);
     }
-
-
 
 }
 
-export async function logoutUser(req, res) {
+export async function logoutUser(req, res, next) {
     res.clearCookie("token", {
         httpOnly: true,
         sameSite: "strict",
